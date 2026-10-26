@@ -119,9 +119,19 @@ add_shortcode('review_list', function () {
 				}
 			}, true);
 
-			if (location.hash === '#review_form_wrapper' || location.hash === '#respond') {
-				openForm();
+			function openFromHash() {
+				if (location.hash === '#review_form_wrapper' || location.hash === '#respond') {
+					openForm();
+				}
 			}
+
+			// Wait for load so the scroll target isn't moved by late layout shifts.
+			if (document.readyState === 'complete') {
+				openFromHash();
+			} else {
+				window.addEventListener('load', openFromHash);
+			}
+			window.addEventListener('hashchange', openFromHash);
 		})();
 	</script>
 <?php
