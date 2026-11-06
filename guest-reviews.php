@@ -10,11 +10,12 @@ defined('ABSPATH') || exit;
 const CC_GR_PARAM = 'ccr';
 
 /**
- * Shiprazor's custom "Shipped" status is a paid order; without this, wc_customer_bought_product()
- * (verified-owner check and badge) ignores shipped orders.
+ * Bob Go's custom "Shipped" and "Partially Shipped" statuses are paid orders; without this,
+ * wc_customer_bought_product() (verified-owner check and badge) ignores them.
  */
 add_filter('woocommerce_order_is_paid_statuses', function ($statuses) {
 	$statuses[] = 'shipped';
+	$statuses[] = 'partially-shipped';
 	return array_values(array_unique($statuses));
 });
 
