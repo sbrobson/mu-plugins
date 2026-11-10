@@ -46,7 +46,7 @@ function aan_user_lines(WP_User $user): array
 	];
 }
 
-// Priority 99: after WooCommerce/social login plugins have saved first/last name.
+// Priority 30: Nextend Social Login redirects and exits at 40 (doAutoLogin).
 add_action('user_register', function ($user_id) {
 	$user = get_userdata($user_id);
 	if (! $user) {
@@ -69,7 +69,7 @@ add_action('user_register', function ($user_id) {
 			'Profile: ' . admin_url('user-edit.php?user_id=' . $user_id),
 		]
 	));
-}, 99);
+}, 30);
 
 // Fires for both wp-login.php and WooCommerce My Account password resets.
 add_action('password_reset', function ($user) {
