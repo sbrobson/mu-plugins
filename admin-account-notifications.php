@@ -46,19 +46,42 @@ function aan_user_lines(WP_User $user): array
 	];
 }
 
+$aan_social_provider = '';
+
+add_action('nsl_before_register', function ($provider) use (&$aan_social_provider) {
+	$aan_social_provider = method_exists($provider, 'getLabel') ? $provider->getLabel() : $provider->getId();
+});
+
+function aan_signup_source(int $user_id, string $social_provider): string
+{
+	$creator = wp_get_current_user();
+	if ($creator->exists() && $creator->ID !== $user_id) {
+		return 'Added in wp-admin by ' . $creator->display_name . ' (' . $creator->user_login . ')';
+	}
+	if ($social_provider) {
+		return $social_provider . ' sign-in';
+	}
+
+	$uri = wp_unslash($_SERVER['REQUEST_URI'] ?? '');
+	// Classic (?wc-ajax=checkout) and block (/wc/store/v1/checkout) checkout.
+	if (str_contains($uri, 'checkout')) {
+		return 'Checkout';
+	}
+	if (did_action('woocommerce_register_post')) {
+		return 'My Account registration form';
+	}
+
+	return 'Signed up at ' . strtok($uri, '?');
+}
+
 // Priority 30: Nextend Social Login redirects and exits at 40 (doAutoLogin).
-add_action('user_register', function ($user_id) {
+add_action('user_register', function ($user_id) use (&$aan_social_provider) {
 	$user = get_userdata($user_id);
 	if (! $user) {
 		return;
 	}
 
-	$creator = wp_get_current_user();
-	if ($creator->exists() && $creator->ID !== $user_id) {
-		$source = 'Added by ' . $creator->display_name . ' (' . $creator->user_login . ')';
-	} else {
-		$source = 'Signed up at ' . strtok(wp_unslash($_SERVER['REQUEST_URI'] ?? ''), '?');
-	}
+	$source = aan_signup_source($user_id, $aan_social_provider);
 
 	aan_notify_admins('New user account', array_merge(
 		['A new user account has been created.', ''],
